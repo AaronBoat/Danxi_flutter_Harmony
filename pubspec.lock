@@ -1308,10 +1308,10 @@ packages:
     dependency: "direct overridden"
     description:
       name: sqflite
-      sha256: ff5a2436ef8ebdfda748fbfe957f9981524cb5ff11e7bafa8c42771840e8a788
+      sha256: "591f1602816e9c31377d5f008c2d9ef7b8aca8941c3f89cc5fd9d84da0c38a9a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3+2"
+    version: "2.3.0"
   sqflite_common:
     dependency: transitive
     description:

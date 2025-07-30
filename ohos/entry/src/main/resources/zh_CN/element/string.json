@@ -2,47 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "DanXi鸿蒙版 - 复旦大学一站式服务应用"
+      "value": "模块描述"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "DanXi鸿蒙版主入口"
+      "value": "description"
     },
     {
       "name": "EntryAbility_label",
-      "value": "旦夕"
-    },
-    {
-      "name": "reason_internet",
-      "value": "访问网络获取校园服务数据"
-    },
-    {
-      "name": "reason_camera",
-      "value": "拍照上传图片到论坛"
-    },
-    {
-      "name": "reason_read_media",
-      "value": "读取本地媒体文件用于分享"
-    },
-    {
-      "name": "reason_write_media",
-      "value": "保存图片和文件到本地"
-    },
-    {
-      "name": "reason_microphone",
-      "value": "录音功能（如语音消息）"
-    },
-    {
-      "name": "reason_location",
-      "value": "获取位置信息用于校园服务"
-    },
-    {
-      "name": "reason_read_imagevideo",
-      "value": "读取图片和视频用于上传分享"
-    },
-    {
-      "name": "reason_write_imagevideo",
-      "value": "保存图片和视频到相册"
+      "value": "app_ohos"
     }
   ]
 }

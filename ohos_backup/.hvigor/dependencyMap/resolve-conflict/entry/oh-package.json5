@@ -1,0 +1,13 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "@ohos/flutter_ohos": "/Users/aaron/fvm/versions/3.22.1-ohos-1.0.3/bin/cache/artifacts/engine/ohos-arm64/flutter.har"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
+}

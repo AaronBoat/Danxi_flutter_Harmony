@@ -11,12 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations: # 添加这一行
-    sdk: flutter         # 添加这一行
-
-  # 核心主应用模块
-  dan_xi:
-    path: ../app
 
   # 基础 UI 组件
   cupertino_icons: ^1.0.6

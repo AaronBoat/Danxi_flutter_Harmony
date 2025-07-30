@@ -1,0 +1,70 @@
+{
+  "lockVersion": "1.0",
+  "settings": {
+    "resolveConflict": true,
+    "resolveConflictStrict": false,
+    "installAll": true
+  },
+  "overrides": {
+    "@ohos/flutter_ohos": "file:/Users/aaron/fvm/versions/3.22.1-ohos-1.0.3/bin/cache/artifacts/engine/ohos-arm64/flutter.har"
+  },
+  "overrideDependencyMap": {
+    "entry": {
+      "dependencies": {
+        "@ohos/flutter_ohos": ""
+      }
+    },
+    ".": {
+      "dependencies": {},
+      "devDependencies": {
+        "@ohos/hypium": "1.0.6"
+      },
+      "dynamicDependencies": {}
+    }
+  },
+  "modules": {
+    ".": {
+      "name": "",
+      "dependencies": {},
+      "devDependencies": {
+        "@ohos/hypium": {
+          "specifier": "1.0.6",
+          "version": "1.0.6"
+        }
+      },
+      "dynamicDependencies": {},
+      "maskedByOverrideDependencyMap": true
+    },
+    "entry": {
+      "name": "entry",
+      "dependencies": {
+        "@ohos/flutter_ohos": {
+          "specifier": "",
+          "version": "file:../../../../../fvm/versions/3.22.1-ohos-1.0.3/bin/cache/artifacts/engine/ohos-arm64/flutter.har"
+        }
+      },
+      "devDependencies": {},
+      "dynamicDependencies": {},
+      "maskedByOverrideDependencyMap": true
+    }
+  },
+  "packages": {
+    "@ohos/hypium@1.0.6": {
+      "integrity": "sha512-bb3DWeWhYrFqj9mPFV3yZQpkm36kbcK+YYaeY9g292QKSjOdmhEIQR2ULPvyMsgSR4usOBf5nnYrDmaCCXirgQ==",
+      "storePath": "oh_modules/.ohpm/@ohos+hypium@1.0.6",
+      "dependencies": {},
+      "dynamicDependencies": {},
+      "dev": true,
+      "dynamic": false,
+      "maskedByOverrideDependencyMap": false
+    },
+    "@ohos/flutter_ohos@file:../../../../../fvm/versions/3.22.1-ohos-1.0.3/bin/cache/artifacts/engine/ohos-arm64/flutter.har": {
+      "storePath": "oh_modules/.ohpm/@ohos+flutter_ohos@z+esrfzju6x1o3bcfuku8xtvaawms8gp1tiq996zf1o=",
+      "dependencies": {},
+      "dynamicDependencies": {},
+      "dev": false,
+      "dynamic": false,
+      "maskedByOverrideDependencyMap": false
+    }
+  }
+}

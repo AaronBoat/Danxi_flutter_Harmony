@@ -1,0 +1,160 @@
+{
+  "ohos-module-entry": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/src/main",
+        "RESOURCES_PATH": [
+          "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/cache/default/default@CompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/cache/default/default@CompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      },
+      "ohosTest": {
+        "SOURCE_ROOT": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/src/ohosTest",
+        "RESOURCES_PATH": [
+          "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/src/ohosTest/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/outputs/ohosTest",
+          "INTERMEDIA_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader_out/ohosTest",
+          "JS_LITE_ASSETS_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader_out_lite/ohosTest",
+          "RES_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/res/ohosTest",
+          "RES_PROFILE_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/res/ohosTest/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/cache/ohosTest/ohosTest@OhosTestCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/cache/ohosTest/ohosTest@OhosTestCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/loader/ohosTest/loader.json",
+          "MANIFEST_JSON": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/manifest/ohosTest",
+          "OUTPUT_METADATA_JSON": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/hap_metadata/ohosTest/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry/build/default/intermediates/source_map/ohosTest"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default"
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "targets": [
+        {
+          "name": "default",
+          "runtimeOS": "HarmonyOS"
+        },
+        {
+          "name": "ohosTest",
+          "runtimeOS": "HarmonyOS"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-project": {
+    "SELECT_PRODUCT_NAME": "default",
+    "MODULE_BUILD_DIR": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/build",
+    "BUNDLE_NAME": "com.danxi.flutter.app_ohos",
+    "BUILD_PATH": {
+      "OUTPUT_PATH": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/build/outputs/default"
+    },
+    "MODULES": [
+      {
+        "name": "entry",
+        "srcPath": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos/entry",
+        "targets": [
+          {
+            "name": "default",
+            "applyToProducts": [
+              "default"
+            ]
+          }
+        ],
+        "belongProjectPath": "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos"
+      }
+    ],
+    "PROFILE_OPT": {
+      "app": {
+        "signingConfigs": [
+          {
+            "name": "default",
+            "type": "HarmonyOS",
+            "material": {
+              "certpath": "/Users/aaron/.ohos/config/default_ohos_Wu7Qs1BY65EHwG_g2jaHh4doGY_XKy68L7cc9Yvi6V8=.cer",
+              "keyAlias": "debugKey",
+              "keyPassword": "0000001B3B46F38F6DA0FDB0E643986F48AAC7C4D852CAF337F2E558DEE98E3EA63599399246944FF2139F",
+              "profile": "/Users/aaron/.ohos/config/default_ohos_Wu7Qs1BY65EHwG_g2jaHh4doGY_XKy68L7cc9Yvi6V8=.p7b",
+              "signAlg": "SHA256withECDSA",
+              "storeFile": "/Users/aaron/.ohos/config/default_ohos_Wu7Qs1BY65EHwG_g2jaHh4doGY_XKy68L7cc9Yvi6V8=.p12",
+              "storePassword": "0000001B0F6A2FEA21E951A3896594E82895671FB8509A250510D5CF84DD94B394DD18E3947140166A613F"
+            }
+          }
+        ],
+        "products": [
+          {
+            "name": "default",
+            "signingConfig": "default",
+            "compatibleSdkVersion": "5.1.0(18)",
+            "runtimeOS": "HarmonyOS"
+          }
+        ],
+        "buildModeSet": [
+          {
+            "name": "debug"
+          },
+          {
+            "name": "profile"
+          },
+          {
+            "name": "release"
+          }
+        ]
+      },
+      "modules": [
+        {
+          "name": "entry",
+          "srcPath": "./entry",
+          "targets": [
+            {
+              "name": "default",
+              "applyToProducts": [
+                "default"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "CONFIG_PROPERTIES": {
+      "enableSignTask": true,
+      "skipNativeIncremental": false,
+      "hvigor.keepDependency": true
+    },
+    "OVERALL_PROJECT_PATHS": [
+      "/Users/aaron/codes/DanXi-1.4.4/apps/app_ohos/ohos"
+    ],
+    "BUILD_CACHE_DIR": ""
+  },
+  "version": 1
+}

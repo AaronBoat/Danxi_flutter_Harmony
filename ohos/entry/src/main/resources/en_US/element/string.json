@@ -2,15 +2,47 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "DanXi HarmonyOS - All-in-one service app for Fudan University"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "DanXi HarmonyOS Main Entry"
     },
     {
       "name": "EntryAbility_label",
-      "value": "app_ohos"
+      "value": "DanXi"
+    },
+    {
+      "name": "reason_internet",
+      "value": "Access network to get campus service data"
+    },
+    {
+      "name": "reason_camera",
+      "value": "Take photos to upload to forum"
+    },
+    {
+      "name": "reason_read_media",
+      "value": "Read local media files for sharing"
+    },
+    {
+      "name": "reason_write_media",
+      "value": "Save images and files locally"
+    },
+    {
+      "name": "reason_microphone",
+      "value": "Recording function (e.g., voice messages)"
+    },
+    {
+      "name": "reason_location",
+      "value": "Get location information for campus services"
+    },
+    {
+      "name": "reason_read_imagevideo",
+      "value": "Read images and videos for upload and sharing"
+    },
+    {
+      "name": "reason_write_imagevideo",
+      "value": "Save images and videos to gallery"
     }
   ]
 }

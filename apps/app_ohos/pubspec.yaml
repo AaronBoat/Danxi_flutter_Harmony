@@ -1,0 +1,158 @@
+name: app_ohos
+description: "DanXi HarmonyOS application - modular architecture version"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.4.4+341
+
+environment:
+  sdk: '>=2.18.6 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 基础 UI 组件
+  cupertino_icons: ^1.0.6
+
+  # Local modules - 业务模块
+  home_module:
+    path: ../../modules/home_module
+  dashboard_module:
+    path: ../../modules/dashboard_module
+  forum_module:
+    path: ../../modules/forum_module
+  course_module:
+    path: ../../modules/course_module
+  timetable_module:
+    path: ../../modules/timetable_module
+  
+  # Common modules - 公共模块
+  network:
+    path: ../../common/network
+  tools:
+    path: ../../common/tools
+  widgets:
+    path: ../../common/widgets
+
+  # 鸿蒙平台特定依赖
+  flutter_phoenix: ^1.0.0    # 应用重启
+  provider: ^6.0.5           # 全局状态管理
+
+# 鸿蒙化三方库适配 - 分阶段适配策略
+dependency_overrides:
+  # ========== 阶段1: 纯Dart库，可直接使用 ==========
+  # 核心库
+  intl: ^0.19.0                     # 国际化库，纯Dart，可直接使用
+  dio: ^5.3.3                       # 网络库，纯Dart，可直接使用
+  http: ^0.13.6                     # HTTP客户端，纯Dart，可直接使用
+  provider: ^6.0.5                  # 状态管理，纯Dart，可直接使用
+  flutter_bloc: ^8.1.3              # 状态管理，纯Dart，可直接使用
+  
+  # UI组件库 - 纯Dart实现
+  cached_network_image: ^3.2.3      # 网络图片缓存，纯Dart，可直接使用
+  photo_view: ^0.14.0               # 图片查看器，纯Dart，可直接使用
+  fl_chart: ^0.62.0                 # 图表库，纯Dart，可直接使用
+  pull_to_refresh: ^2.0.0           # 下拉刷新，纯Dart，可直接使用
+  table_calendar: ^3.0.9            # 日历组件，纯Dart，可直接使用
+  flutter_svg: ^2.0.5               # SVG支持，纯Dart，可直接使用
+  auto_size_text: ^3.0.0            # 自适应文本，纯Dart，可直接使用
+  card_swiper: ^3.0.1               # 轮播图，纯Dart，可直接使用
+  dotted_border: ^2.1.0             # 虚线边框，纯Dart，可直接使用
+  qr_flutter: ^4.1.0                # 二维码生成，纯Dart，可直接使用
+  lottie: ^2.3.2                    # 动画库，纯Dart，可直接使用
+  
+  # 工具库 - 纯Dart实现
+  uuid: ^4.1.0                      # UUID生成，纯Dart，可直接使用
+  crypto: ^3.0.3                    # 加密库，纯Dart，可直接使用
+  convert: ^3.1.1                   # 数据转换，纯Dart，可直接使用
+  xml: ^6.2.2                       # XML解析，纯Dart，可直接使用
+  rxdart: ^0.27.7                   # 响应式编程，纯Dart，可直接使用
+  equatable: ^2.0.5                 # 对象比较，纯Dart，可直接使用
+  
+  # ========== 阶段2: 暂时使用原版，后续切换到HarmonyOS适配版本 ==========
+  # 存储相关 - 先使用原版，确保基本功能
+  sqflite: 2.3.0                    # 固定版本避免拉取不兼容的更新版本
+  shared_preferences: ^2.2.1        # 共享偏好存储，暂用原版  
+  path_provider: ^2.1.1             # 路径提供器，暂用原版
+  
+  # 系统功能 - 先使用原版，后续适配
+  permission_handler: ^11.0.1       # 权限处理，暂用原版
+  fluttertoast: ^8.2.2              # Toast提示，暂用原版
+  image_picker: ^1.0.4              # 图片选择器，暂用原版
+  url_launcher: ^6.1.11             # URL启动器，暂用原版
+  
+  # Plus插件系列 - 暂用原版
+  connectivity_plus: ^5.0.1         # 网络连接状态，暂用原版
+  device_info_plus: ^9.1.0          # 设备信息，暂用原版
+  package_info_plus: ^4.2.0         # 包信息，暂用原版
+  
+  # ========== 阶段3: 特殊处理的库 ==========
+  # 这些库暂时使用标准版本，后续可切换到特定适配版本
+  flutter_markdown: ^0.6.18         # Markdown渲染，标准版本
+  
+  # ========== 注释：特殊适配版本 ==========
+  # 网络稳定后可以切换到以下版本：
+  #
+  # linkify:
+  #   git:
+  #     url: https://github.com/singularity-s0/linkify.git
+  #     ref: master
+  #      
+  # flutter_markdown:
+  #   git:
+  #     url: https://github.com/singularity-s0/flutter_markdown_selectable.git
+  #     ref: master
+      
+  # ========== 注释：HarmonyOS适配版本 ==========
+  # 当网络稳定或本地环境配置完成后，可以切换到以下适配版本：
+  #
+  # sqflite:
+  #   git:
+  #     url: https://gitee.com/openharmony-sig/flutter_sqflite.git
+  #     ref: master
+  #
+  # shared_preferences:
+  #   git:
+  #     url: https://gitee.com/openharmony-sig/flutter_packages.git
+  #     path: packages/shared_preferences/shared_preferences
+  #     ref: main
+  #
+  # permission_handler:
+  #   git:
+  #     url: https://gitee.com/openharmony-sig/flutter_permission_handler.git
+  #     ref: master
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^3.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # Assets from main app - 使用绝对路径避免相对路径问题
+  assets:
+    - ../app/assets/graphics/
+    - ../app/assets/graphics/stickers/
+    - ../app/assets/texts/
+
+  # Fonts from main app - 使用绝对路径避免相对路径问题
+  fonts:
+    - family: iconfont
+      fonts:
+        - asset: ../app/assets/fonts/iconfont.ttf

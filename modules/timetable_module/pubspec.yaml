@@ -1,0 +1,27 @@
+name: timetable_module
+description: Timetable module for DanXi app providing schedule management features
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.6 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Local dependencies
+  network:
+    path: ../../common/network
+  tools:
+    path: ../../common/tools
+  widgets:
+    path: ../../common/widgets
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true

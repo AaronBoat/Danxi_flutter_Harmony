@@ -1,0 +1,46 @@
+name: home_module
+description: Home module for DanXi app providing main navigation and home features
+version: 1.0.0
+homepage:
+
+environment:
+  sdk: '>=2.18.6 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # 状态管理库 - 纯 Dart 实现
+  flutter_bloc: ^8.1.3
+  
+  # 网络库 - 纯 Dart 实现  
+  dio: ^5.4.3+1
+  
+  # Toast 提示库 - 需要平台适配
+  fluttertoast: ^8.2.6
+  
+  # UI 组件库
+  cupertino_icons: ^1.0.5
+  
+  # 本地存储
+  shared_preferences: ^2.0.15
+  
+  # 路由管理
+  go_router: ^14.0.0
+  
+  # Local dependencies
+  network:
+    path: ../../common/network
+  tools:
+    path: ../../common/tools
+  widgets:
+    path: ../../common/widgets
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true

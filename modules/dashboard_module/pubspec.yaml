@@ -1,0 +1,42 @@
+name: dashboard_module
+description: Dashboard module for DanXi app providing campus services
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.6 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # 图表库 - 用于数据可视化
+  fl_chart: ^0.68.0
+  
+  # 日期时间处理
+  intl: ^0.19.0
+  
+  # 图片缓存和加载
+  cached_network_image: ^3.3.1
+  
+  # 下拉刷新
+  pull_to_refresh: ^2.0.0
+  
+  # 权限请求
+  permission_handler: ^11.3.1
+  
+  # Local dependencies
+  network:
+    path: ../../common/network
+  tools:
+    path: ../../common/tools
+  widgets:
+    path: ../../common/widgets
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true

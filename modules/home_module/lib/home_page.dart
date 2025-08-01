@@ -20,17 +20,13 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+// import 'package:flutter_platform_widgets/flutter_platform_widgets.dart'; 这个是ios用的
 import 'package:lazy_load_indexed_stack/lazy_load_indexed_stack.dart';
 import 'package:provider/provider.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_intent/receive_intent.dart' as ri;
 import 'package:screen_capture_event/screen_capture_event.dart';
 import 'package:app_links/app_links.dart';
-import 'package:xiao_mi_push_plugin/entity/mi_push_command_message_entity.dart';
-import 'package:xiao_mi_push_plugin/entity/mi_push_message_entity.dart';
-import 'package:xiao_mi_push_plugin/xiao_mi_push_plugin.dart';
-import 'package:xiao_mi_push_plugin/xiao_mi_push_plugin_listener.dart';
 
 // Local dependencies from common packages
 import 'package:tools/common/constant.dart';

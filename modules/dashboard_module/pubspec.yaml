@@ -1,6 +1,7 @@
 name: dashboard_module
 description: Dashboard module for DanXi app providing campus services
 version: 1.0.0
+publish_to: none # 将此模块标记为不可发布
 
 environment:
   sdk: '>=2.18.6 <4.0.0'

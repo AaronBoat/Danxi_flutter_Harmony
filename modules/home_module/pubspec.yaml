@@ -1,7 +1,7 @@
 name: home_module
 description: Home module for DanXi app providing main navigation and home features
 version: 1.0.0
-publish_to: none # 将此模块标记为不可发布 
+publish_to: 'none'
 
 environment:
   sdk: '>=2.18.6 <4.0.0'
@@ -11,40 +11,24 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # 状态管理库 - 纯 Dart 实现
-  flutter_bloc: ^8.1.3
-  
-  # 网络库 - 纯 Dart 实现  
-  dio: ^5.4.3+1
-  
-  # Toast 提示库 - 需要平台适配
+  # 遵循“无别名，直接使用”原则，只声明原版库依赖
+  url_launcher: ^6.1.11 
+  shared_preferences: ^2.0.15
   fluttertoast: ^8.2.6
   
-  # UI 组件库
+  # 其他所有第三方库
+  flutter_bloc: ^8.1.3
+  dio: ^5.4.3+1
   cupertino_icons: ^1.0.5
-  
-  # 本地存储
-  shared_preferences: ^2.0.15
-  
-  # 路由管理
   go_router: ^14.0.0
-
-  # URL跳转 (已适配, 仓库名: url_launcher)
-  url_launcher:
-    git:
-      url: https://gitee.com/openharmony-sig/flutter_packages.git
-      path: packages/url_launcher
-  
-  # 新增的依赖项
-  flutter_platform_widgets: ^3.4.0 # 版本号仅为示例，可根据需要调整
-  lazy_load_indexed_stack: ^0.1.4
+#  flutter_platform_widgets: ^3.4.0
+  lazy_load_indexed_stack: ^1.0.0
   provider: ^6.0.5
-  quick_actions: ^1.0.6 # 警告：此库正在适配中，可能无法正常工作
+  quick_actions: ^1.0.6
   receive_intent: ^0.1.0
   screen_capture_event: ^1.0.0
   app_links: ^3.4.1
-  xiao_mi_push_plugin: ^1.0.6 # 警告：此库可能不兼容鸿蒙
-  dio5_log: ^1.0.0-beta.3
+#  dio5_log: ^1.0.0-beta.3
 
   # === Local dependencies ===
   network:

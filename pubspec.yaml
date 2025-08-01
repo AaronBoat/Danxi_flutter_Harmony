@@ -11,28 +11,30 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.6
   flutter_phoenix: ^1.0.0
   provider: ^6.0.5
 
-  # Local modules
+  # Local modules - 路径已更新
   home_module:
-    path: ../../modules/home_module
+    path: modules/home_module
   dashboard_module:
-    path: ../../modules/dashboard_module
+    path: modules/dashboard_module
   forum_module:
-    path: ../../modules/forum_module
+    path: modules/forum_module
   course_module:
-    path: ../../modules/course_module
+    path: modules/course_module
   timetable_module:
-    path: ../../modules/timetable_module
+    path: modules/timetable_module
   
+  # Common modules - 路径已更新
   network:
-    path: ../../common/network
+    path: common/network
   tools:
-    path: ../../common/tools
+    path: common/tools
   widgets:
-    path: ../../common/widgets
+    path: common/widgets
 
 # 使用原版库作为fallback
 dependency_overrides:
@@ -45,3 +47,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # 路径已更新
+    - app/assets/graphics/
+    - app/assets/graphics/stickers/
+    - app/assets/texts/
+
+  fonts:
+    - family: iconfont
+      fonts:
+        # 路径已更新
+        - asset: app/assets/fonts/iconfont.ttf

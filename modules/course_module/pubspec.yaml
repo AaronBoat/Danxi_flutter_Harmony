@@ -11,20 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # 表格组件
+  # 1. 声明对原版库的依赖
   data_table_2: ^2.5.9
-  
-  # 搜索功能
   flutter_typeahead: ^5.2.0
-  
-  # 评分组件
   flutter_rating_bar: ^4.0.1
-  
-  # 日历组件
   table_calendar: ^3.0.9
-  
-  # 数据持久化 (降级到兼容Dart 3.4的版本)
-  sqflite: ^2.2.8
+  sqflite: ^2.3.0 # 使用一个常规版本号
   
   # Local dependencies
   network:
@@ -33,6 +25,13 @@ dependencies:
     path: ../../common/tools
   widgets:
     path: ../../common/widgets
+
+# 2. 在这里强制覆盖为鸿蒙适配版
+dependency_overrides:
+  sqflite:
+    git:
+      # 注意：sqflite的仓库名是 flutter_sqflite
+      url: https://gitee.com/openharmony-sig/flutter_sqflite.git
 
 dev_dependencies:
   flutter_test:

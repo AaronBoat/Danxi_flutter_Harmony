@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:go_router/go_router.dart';
+//import 'package:go_router/go_router.dart';
 
 // 导入原有的 home_page 组件
 import 'home_page.dart' as original;
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initializeModule() async {
     try {
       // 初始化本地存储
-      final prefs = await SharedPreferences.getInstance();
+      //final prefs = await SharedPreferences.getInstance();
       
       // 显示模块加载完成提示
       _showToast('Home module loaded successfully');

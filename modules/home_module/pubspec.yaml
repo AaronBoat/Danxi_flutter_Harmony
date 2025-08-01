@@ -34,15 +34,31 @@ dependencies:
     git:
       url: https://gitee.com/openharmony-sig/flutter_packages.git
       path: packages/url_launcher
-
   
-  # Local dependencies
+  # 新增的依赖项
+  flutter_platform_widgets: ^3.4.0 # 版本号仅为示例，可根据需要调整
+  lazy_load_indexed_stack: ^0.1.4
+  provider: ^6.0.5
+  quick_actions: ^1.0.6 # 警告：此库正在适配中，可能无法正常工作
+  receive_intent: ^0.1.0
+  screen_capture_event: ^1.0.0
+  app_links: ^3.4.1
+  xiao_mi_push_plugin: ^1.0.6 # 警告：此库可能不兼容鸿蒙
+  dio5_log: ^1.0.0-beta.3
+
+  # === Local dependencies ===
   network:
     path: ../../common/network
   tools:
     path: ../../common/tools
   widgets:
     path: ../../common/widgets
+  
+  # === Module dependencies ===
+  forum_module:
+    path: ../forum_module
+  timetable_module:
+    path: ../timetable_module
 
 dev_dependencies:
   flutter_test:

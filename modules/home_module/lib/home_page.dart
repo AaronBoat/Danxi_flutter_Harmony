@@ -17,41 +17,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dan_xi/common/constant.dart';
-import 'package:dan_xi/common/pubspec.yaml.g.dart';
-import 'package:dan_xi/generated/l10n.dart';
-import 'package:dan_xi/model/announcement.dart';
-import 'package:dan_xi/model/extra.dart';
-import 'package:dan_xi/model/forum/hole.dart';
-import 'package:dan_xi/model/person.dart';
-import 'package:dan_xi/page/platform_subpage.dart';
-import 'package:dan_xi/page/subpage_danke.dart';
-import 'package:dan_xi/page/subpage_dashboard.dart';
-import 'package:dan_xi/page/subpage_settings.dart';
-import 'package:dan_xi/page/subpage_timetable.dart';
-import 'package:dan_xi/page/subpage_forum.dart';
-import 'package:dan_xi/provider/forum_provider.dart';
-import 'package:dan_xi/provider/settings_provider.dart';
-import 'package:dan_xi/provider/state_provider.dart';
-import 'package:dan_xi/repository/app/announcement_repository.dart';
-import 'package:dan_xi/repository/fdu/uis_login_tool.dart';
-import 'package:dan_xi/repository/forum/forum_repository.dart';
-import 'package:dan_xi/test/test.dart';
-import 'package:dan_xi/util/browser_util.dart';
-import 'package:dan_xi/util/flutter_app.dart';
-import 'package:dan_xi/util/master_detail_view.dart';
-import 'package:dan_xi/util/noticing.dart';
-import 'package:dan_xi/util/platform_universal.dart';
-import 'package:dan_xi/util/public_extension_methods.dart';
-import 'package:dan_xi/util/stream_listener.dart';
-import 'package:dan_xi/widget/dialogs/login_dialog.dart';
-import 'package:dan_xi/widget/dialogs/qr_code_dialog.dart';
-import 'package:dan_xi/widget/libraries/error_page_widget.dart';
-import 'package:dan_xi/widget/libraries/linkify_x.dart';
-import 'package:dan_xi/widget/libraries/platform_nav_bar_m3.dart';
-import 'package:dan_xi/widget/forum/post_render.dart';
-import 'package:dan_xi/widget/forum/render/render_impl.dart';
-import 'package:dio5_log/overlay_draggable_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,6 +31,46 @@ import 'package:xiao_mi_push_plugin/entity/mi_push_command_message_entity.dart';
 import 'package:xiao_mi_push_plugin/entity/mi_push_message_entity.dart';
 import 'package:xiao_mi_push_plugin/xiao_mi_push_plugin.dart';
 import 'package:xiao_mi_push_plugin/xiao_mi_push_plugin_listener.dart';
+
+// Local dependencies from common packages
+import 'package:tools/common/constant.dart';
+import 'package:tools/common/pubspec.yaml.g.dart';
+import 'package:tools/generated/l10n.dart';
+import 'package:tools/model/announcement.dart';
+import 'package:tools/model/extra.dart';
+import 'package:tools/model/forum/hole.dart';
+import 'package:tools/model/person.dart';
+import 'package:tools/provider/settings_provider.dart';
+import 'package:tools/provider/state_provider.dart';
+import 'package:tools/repository/app/announcement_repository.dart';
+import 'package:tools/repository/fdu/uis_login_tool.dart';
+import 'package:tools/util/browser_util.dart';
+import 'package:tools/util/flutter_app.dart';
+import 'package:tools/util/master_detail_view.dart';
+import 'package:tools/util/noticing.dart';
+import 'package:tools/util/platform_universal.dart';
+import 'package:tools/util/public_extension_methods.dart';
+import 'package:tools/util/stream_listener.dart';
+import 'package:widgets/dialogs/login_dialog.dart';
+import 'package:widgets/dialogs/qr_code_dialog.dart';
+import 'package:widgets/libraries/error_page_widget.dart';
+import 'package:widgets/libraries/linkify_x.dart';
+import 'package:widgets/libraries/platform_nav_bar_m3.dart';
+import 'package:widgets/platform_subpage.dart';
+import 'package:dio5_log/overlay_draggable_button.dart';
+
+// Local dependencies from other modules
+import 'package:forum_module/page/subpage_forum.dart';
+import 'package:forum_module/provider/forum_provider.dart';
+import 'package:forum_module/repository/forum_repository.dart';
+import 'package:forum_module/widget/post_render.dart';
+import 'package:forum_module/widget/render/render_impl.dart';
+import 'package:timetable_module/page/subpage_timetable.dart';
+// TODO: These pages need to be checked if they are part of a module or should be in home_module
+// import 'package:dan_xi/page/subpage_danke.dart';
+// import 'package:dan_xi/page/subpage_dashboard.dart';
+// import 'package:dan_xi/page/subpage_settings.dart';
+// import 'package:dan_xi/test/test.dart';
 
 const forumChannel = MethodChannel('fduhole');
 

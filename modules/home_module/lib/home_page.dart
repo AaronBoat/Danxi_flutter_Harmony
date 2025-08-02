@@ -1,5 +1,5 @@
 /*
- *     Copyright (C) 2021  DanXi-Dev
+ *     Copyright (C) 2021-2024  DanXi-Dev
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,829 +15,318 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-// import 'package:flutter_platform_widgets/flutter_platform_widgets.dart'; 这个是ios用的
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lazy_load_indexed_stack/lazy_load_indexed_stack.dart';
-import 'package:provider/provider.dart';
-import 'package:quick_actions/quick_actions.dart';
-import 'package:receive_intent/receive_intent.dart' as ri;
-import 'package:screen_capture_event/screen_capture_event.dart';
-import 'package:app_links/app_links.dart';
 
-// Local dependencies from common packages
+// 修正后的依赖导入
 import 'package:tools/common/constant.dart';
-import 'package:tools/common/pubspec.yaml.g.dart';
 import 'package:tools/generated/l10n.dart';
-import 'package:tools/model/announcement.dart';
-import 'package:tools/model/extra.dart';
-import 'package:tools/model/forum/hole.dart';
 import 'package:tools/model/person.dart';
 import 'package:tools/provider/settings_provider.dart';
 import 'package:tools/provider/state_provider.dart';
 import 'package:tools/repository/app/announcement_repository.dart';
 import 'package:tools/repository/fdu/uis_login_tool.dart';
-import 'package:tools/util/browser_util.dart';
-import 'package:tools/util/flutter_app.dart';
-import 'package:tools/util/master_detail_view.dart';
 import 'package:tools/util/noticing.dart';
 import 'package:tools/util/platform_universal.dart';
-import 'package:tools/util/public_extension_methods.dart';
-import 'package:tools/util/stream_listener.dart';
 import 'package:widgets/dialogs/login_dialog.dart';
-import 'package:widgets/dialogs/qr_code_dialog.dart';
-import 'package:widgets/libraries/error_page_widget.dart';
-import 'package:widgets/libraries/linkify_x.dart';
 import 'package:widgets/libraries/platform_nav_bar_m3.dart';
 import 'package:widgets/platform_subpage.dart';
-import 'package:dio5_log/overlay_draggable_button.dart';
 
-// Local dependencies from other modules
+// 其他模块依赖
 import 'package:forum_module/page/subpage_forum.dart';
-import 'package:forum_module/provider/forum_provider.dart';
-import 'package:forum_module/repository/forum_repository.dart';
-import 'package:forum_module/widget/post_render.dart';
-import 'package:forum_module/widget/render/render_impl.dart';
 import 'package:timetable_module/page/subpage_timetable.dart';
-// TODO: These pages need to be checked if they are part of a module or should be in home_module
+
+// TODO: 梳理并迁移这些页面的依赖
 // import 'package:dan_xi/page/subpage_danke.dart';
 // import 'package:dan_xi/page/subpage_dashboard.dart';
 // import 'package:dan_xi/page/subpage_settings.dart';
-// import 'package:dan_xi/test/test.dart';
 
-const forumChannel = MethodChannel('fduhole');
+// --- 1. Bloc Events (事件) ---
+sealed class HomePageEvent {}
 
-void sendFduholeTokenToWatch(String? token) {
-  forumChannel.invokeMethod("send_token", token);
+final class InitializeApp extends HomePageEvent {}
+final class UserLoginChanged extends HomePageEvent {}
+final class PageSwitched extends HomePageEvent {
+  final int index;
+  PageSwitched(this.index);
+}
+final class TabDoubleTapped extends HomePageEvent {}
+
+
+// --- 2. Bloc States (状态) ---
+sealed class HomePageState {
+  final int pageIndex;
+  final List<PlatformSubpage<dynamic>> subpages;
+  const HomePageState({this.pageIndex = 0, this.subpages = const []});
 }
 
-GlobalKey<NavigatorState> detailNavigatorKey = GlobalKey();
-GlobalKey<State<SettingsSubpage>> settingsPageKey = GlobalKey();
-GlobalKey<ForumSubpageState> forumPageKey = GlobalKey();
-GlobalKey<DankeSubPageState> dankePageKey = GlobalKey();
-GlobalKey<HomeSubpageState> dashboardPageKey = GlobalKey();
-GlobalKey<TimetableSubPageState> timetablePageKey = GlobalKey();
-const QuickActions quickActions = QuickActions();
+final class HomePageLoading extends HomePageState {}
 
-/// The main page of DanXi.
-/// It is a container for [PlatformSubpage].
-class HomePage extends StatefulWidget {
+final class HomePageLoginRequired extends HomePageState {}
+
+final class HomePageReady extends HomePageState {
+  const HomePageReady({
+    required super.pageIndex,
+    required super.subpages,
+  });
+}
+
+final class HomePageFailure extends HomePageState {
+  final String error;
+  const HomePageFailure(this.error);
+}
+
+
+// --- 3. HomePage Bloc (业务逻辑核心) ---
+class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
+  StreamSubscription? _personInfoSubscription;
+  StreamSubscription? _captchaSubscription;
+  StreamSubscription? _credentialsInvalidSubscription;
+
+  HomePageBloc() : super(HomePageLoading()) {
+    on<InitializeApp>(_onInitializeApp);
+    on<UserLoginChanged>(_onUserLoginChanged);
+    on<PageSwitched>(_onPageSwitched);
+    on<TabDoubleTapped>(_onTabDoubleTapped);
+
+    // 监听用户登录状态变化
+    _personInfoSubscription = StateProvider.personInfo.addListener(() {
+      add(UserLoginChanged());
+    });
+  }
+
+  Future<void> _onInitializeApp(InitializeApp event, Emitter<HomePageState> emit) async {
+    emit(HomePageLoading());
+    try {
+      // 加载本地存储的用户信息
+      await _loadPersonInfoFromLocal();
+      
+      // 如果没有用户信息，则停留在需要登录的状态
+      if (StateProvider.personInfo.value == null) {
+        emit(HomePageLoginRequired());
+        return;
+      }
+
+      // 初始化各种平台和服务监听器
+      _initListeners();
+
+      // 异步加载远程数据（不阻塞UI）
+      _loadDataFromRemote();
+
+      // 构建页面并进入 Ready 状态
+      final subpages = _buildSubpages();
+      emit(HomePageReady(pageIndex: state.pageIndex, subpages: subpages));
+
+    } catch (e) {
+      emit(HomePageFailure(e.toString()));
+    }
+  }
+
+  void _onUserLoginChanged(UserLoginChanged event, Emitter<HomePageState> emit) {
+    // 当用户登录或登出时，重新评估页面状态
+    if (StateProvider.personInfo.value != null) {
+      final subpages = _buildSubpages();
+      // 如果之前是未登录状态，现在重新加载数据
+      if (state is! HomePageReady) {
+         _loadDataFromRemote();
+      }
+      emit(HomePageReady(pageIndex: state.pageIndex, subpages: subpages));
+    } else {
+      emit(HomePageLoginRequired());
+    }
+  }
+
+  void _onPageSwitched(PageSwitched event, Emitter<HomePageState> emit) {
+    if (state is HomePageReady && event.index != state.pageIndex) {
+      final currentState = state as HomePageReady;
+      // 派发视图状态变更事件
+      for (int i = 0; i < currentState.subpages.length; i++) {
+        if (event.index != i) {
+          currentState.subpages[i].onViewStateChanged(SubpageViewState.INVISIBLE);
+        }
+      }
+      currentState.subpages[event.index].onViewStateChanged(SubpageViewState.VISIBLE);
+      
+      emit(HomePageReady(pageIndex: event.index, subpages: currentState.subpages));
+    }
+  }
+
+  void _onTabDoubleTapped(TabDoubleTapped event, Emitter<HomePageState> emit) {
+    if (state is HomePageReady) {
+      state.subpages[state.pageIndex].onDoubleTapOnTab();
+    }
+  }
+
+  Future<void> _loadPersonInfoFromLocal() async {
+    final prefs = SettingsProvider.getInstance().preferences;
+    if (PersonInfo.verifySharedPreferences(prefs!)) {
+      StateProvider.personInfo.value = PersonInfo.fromSharedPreferences(prefs);
+    }
+  }
+
+  Future<void> _loadDataFromRemote() async {
+    try {
+      await AnnouncementRepository.getInstance().loadAnnouncements();
+      // ... 在这里添加其他数据加载逻辑，如 _loadUpdate, _loadUserAgent 等
+    } catch (e) {
+      // 可以 emit 一个特定的 state 来通知 UI 数据加载失败，但不阻塞主流程
+      print("Failed to load remote data: $e");
+    }
+  }
+
+  void _initListeners() {
+    // 初始化各种事件监听器，例如 Deep Link, Push Notification, 登录异常等
+    _captchaSubscription ??= Constant.eventBus.on<CaptchaNeededException>().listen((_) {
+      // TODO: emit 一个特定的 state 来显示对话框
+    });
+    _credentialsInvalidSubscription ??= Constant.eventBus.on<CredentialsInvalidException>().listen((_) {
+      // TODO: emit 一个特定的 state 来显示对话框
+    });
+  }
+
+  List<PlatformSubpage<dynamic>> _buildSubpages() {
+    // 根据用户状态动态构建子页面列表
+    return [
+      if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
+        const HomeSubpage(), // 替换为实际的 Dashboard 页面
+      if (!SettingsProvider.getInstance().hideHole)
+        ForumSubpage(),
+      const DankeSubPage(), // 替换为实际的 Danke 页面
+      if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
+        TimetableSubPage(),
+      const SettingsSubpage(), // 替换为实际的 Settings 页面
+    ];
+  }
+
+  @override
+  Future<void> close() {
+    _personInfoSubscription?.cancel();
+    _captchaSubscription?.cancel();
+    _credentialsInvalidSubscription?.cancel();
+    return super.close();
+  }
+}
+
+
+// --- 4. HomePage View (UI视图) ---
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  HomePageState createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  final ScreenCaptureEvent? screenListener =
-      PlatformX.isMobile ? ScreenCaptureEvent() : null;
-
-  /// Listener to the failure of logging in caused by different reasons.
-  ///
-  /// Open up a dialog to request user to log in manually in the browser.
-  static final StateStreamListener<CaptchaNeededException>
-      _captchaSubscription = StateStreamListener();
-  static final StateStreamListener<CredentialsInvalidException>
-      _credentialsInvalidSubscription = StateStreamListener();
-
-  /// Listener to Android Activity intents.
-  static final StateStreamListener<ri.Intent?> _receivedIntentSubscription =
-      StateStreamListener();
-
-  /// Listener to the url scheme.
-  /// debounced to avoid duplicated events.
-  static final StateStreamListener<Uri?> _uniLinksSubscription =
-      StateStreamListener();
-
-  /// If we need to send the QR code to iWatch now.
-  ///
-  /// When notified [watchActivated], we should send it after [StateProvider.personInfo] is loaded.
-  bool _needSendToWatch = false;
-
-  /// Whether the error dialog is shown.
-  /// If a dialog has been shown, we will not show a duplicated one.
-  /// See [_dealWithCaptchaNeededException]
-  bool _isErrorDialogShown = false;
-
-  /// The tab page index.
-  final ValueNotifier<int> _pageIndex = ValueNotifier(0);
-
-  /// List of all of the subpages. They will be displayed as tab pages.
-  List<PlatformSubpage<dynamic>> _subpage = [];
-
-  /// Force app to rebuild all of subpages.
-  ///
-  /// It's usually called when user changes his account.
-  void _rebuildPage() {
-    _lastRefreshTime = DateTime.now();
-    _subpage = [
-      // Don't show Dashboard in visitor mode
-      if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
-        HomeSubpage(key: dashboardPageKey),
-      if (!SettingsProvider.getInstance().hideHole)
-        ForumSubpage(key: forumPageKey),
-      // Don't show Timetable in visitor mode
-      DankeSubPage(key: dankePageKey),
-      if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
-        TimetableSubPage(key: timetablePageKey),
-      SettingsSubpage(key: settingsPageKey),
-    ];
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _captchaSubscription.cancel();
-    _receivedIntentSubscription.cancel();
-    _uniLinksSubscription.cancel();
-    screenListener?.dispose();
-    super.dispose();
-  }
-
-  /// Deal with login issue described at [CaptchaNeededException].
-  _dealWithCaptchaNeededException() {
-    // If we have shown a dialog, do not pop up another.
-    if (_isErrorDialogShown) {
-      return;
-    }
-    _isErrorDialogShown = true;
-    showPlatformDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) => PlatformAlertDialog(
-              title: Text(S.of(context).fatal_error),
-              content: Text(S.of(context).login_issue_1),
-              actions: [
-                if (!LoginDialog.dialogShown)
-                  PlatformDialogAction(
-                    child: Text(S.of(context).retry),
-                    onPressed: () {
-                      _isErrorDialogShown = false;
-                      Navigator.of(context).pop();
-                      FlutterApp.restartApp(context);
-                    },
-                  ),
-                if (!LoginDialog.dialogShown)
-                  PlatformDialogAction(
-                    child: Text(S.of(context).re_login),
-                    onPressed: () {
-                      _isErrorDialogShown = false;
-                      Navigator.of(context).pop();
-                      _dealWithCredentialsInvalidException();
-                    },
-                  )
-                else
-                  PlatformDialogAction(
-                    child: Text(S.of(context).cancel),
-                    onPressed: () {
-                      _isErrorDialogShown = false;
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                PlatformDialogAction(
-                  child: Text(S.of(context).login_issue_1_action),
-                  onPressed: () =>
-                      BrowserUtil.openUrl(Constant.UIS_URL, context),
-                ),
-              ],
-            ));
-  }
-
-  /// Deal with login issue described at [CredentialsInvalidException].
-  _dealWithCredentialsInvalidException() async {
-    if (!LoginDialog.dialogShown) {
-      // In case that [_preferences] is still not initialized.
-      PersonInfo.removeFromSharedPreferences(
-          SettingsProvider.getInstance().preferences!);
-      FlutterApp.restartApp(context);
-    }
-  }
-
-  /// Deal with bmob error (e.g. unable to obtain data in [AnnouncementRepository]).
-  _dealWithBmobError() {
-    showPlatformDialog(
-        context: context,
-        builder: (BuildContext context) => PlatformAlertDialog(
-              title: Text(S.of(context).fatal_error),
-              content: Text(S.of(context).login_issue_2),
-              actions: <Widget>[
-                PlatformDialogAction(
-                    child: PlatformText(S.of(context).retry),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _loadDataFromGithubRepo();
-                    }),
-                PlatformDialogAction(
-                    child: PlatformText(S.of(context).skip),
-                    onPressed: () => Navigator.pop(context)),
-              ],
-            ));
-  }
-
-  void _loadDataFromGithubRepo() {
-    AnnouncementRepository.getInstance().loadAnnouncements().then((value) {
-      _loadUpdate().then(
-          (value) => _loadAnnouncement().catchError((ignored) {}),
-          onError: (ignored) {});
-      _loadUserAgent().catchError((ignored) {});
-      _loadStartDate().catchError((ignored) {});
-      _loadCelebration().catchError((ignored, st) {});
-    }, onError: (e) {
-      _dealWithBmobError();
-    });
-  }
-
-  DateTime? _lastRefreshTime;
-
-  @override
-  void didHaveMemoryPressure() {
-    super.didHaveMemoryPressure();
-    ForumRepository.getInstance().reduceFloorCache();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.resumed:
-        // After the app returns from the background,
-        // refresh the homepage if it hasn't been refreshed for 30 minutes
-        // to keep the data up-to-date.
-        if (_lastRefreshTime != null &&
-            DateTime.now()
-                    .difference(_lastRefreshTime!)
-                    .compareTo(const Duration(minutes: 30)) >
-                0) {
-          _lastRefreshTime = DateTime.now();
-          dashboardPageKey.currentState?.triggerRebuildFeatures();
-        }
-        break;
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-        break;
-    }
-  }
-
-  Future<void> initSystemTray() async {
-    /*
-    if (!PlatformX.isWindows) return;
-    // We first init the systray menu and then add the menu entries
-    await _systemTray.initSystemTray(
-        title: 'DanXi',
-        iconPath: PlatformX.createPlatformFile(
-                "${PlatformX.getPathFromFile(Platform.resolvedExecutable)}/data/flutter_assets/assets/graphics/app_icon.ico")
-            .path,
-        toolTip: "DanXi is here~");
-    late List<tray.MenuItemBase> showingMenu, hidingMenu;
-    showingMenu = [
-      tray.MenuItem(
-        label: 'Hide',
-        onClicked: () {
-          appWindow.hide();
-          _systemTray.setContextMenu(hidingMenu);
-        },
-      ),
-      tray.MenuSeparator(),
-      tray.MenuItem(
-        label: 'Exit',
-        onClicked: () {
-          appWindow.close();
-          FlutterApp.exitApp();
-        },
-      ),
-    ];
-    hidingMenu = [
-      tray.MenuItem(
-        label: 'Show',
-        onClicked: () {
-          appWindow.show();
-          _systemTray.setContextMenu(showingMenu);
-        },
-      ),
-      tray.MenuSeparator(),
-      tray.MenuItem(
-        label: 'Exit',
-        onClicked: () {
-          appWindow.close();
-          FlutterApp.exitApp();
-        },
-      ),
-    ];
-    await _systemTray.setContextMenu(showingMenu);
-    */
-  }
-
-  /// Deal with url_scheme.
-  /// https://pub.dev/packages/uni_links
-  Future<void> _initUniLinks() async {
-    Future<void> dealWithUri(Uri initialUri) async {
-      // jump to the corresponding page according to the uri pattern
-      if (initialUri.pathSegments.contains("hole")) {
-        await jumpToElements('hole', int.parse(initialUri.pathSegments[1]));
-      } else if (initialUri.pathSegments.contains("floor")) {
-        await jumpToElements('floor', int.parse(initialUri.pathSegments[1]));
-      } else {
-        Error error = ArgumentError(S.of(context).invalidUri);
-        throw error;
-      }
-    }
-
-    // fixme: uni_links *can* handle web, but our web version could have extra path
-    // by default (e.g. "DanXi/" in "https://danxi.fduhole.com/DanXi/"), which
-    // is recognized as an invalid path by [dealWithUri] now. Improve it later.
-    if (PlatformX.isWeb) return;
-
-    final appLinks = AppLinks();
-    Uri? initialUri = await appLinks.getInitialLink();
-    if (initialUri != null) await dealWithUri(initialUri);
-
-    _uniLinksSubscription.bindOnlyInvalid(
-        appLinks.uriLinkStream.listen((Uri? uri) async {
-          if (uri != null) await dealWithUri(uri);
-        }, onError: (Object error) {
-          // Handle exception by warning the user their action did not succeed
-          return Noticing.showErrorDialog(context, error);
-        }),
-        hashCode);
-  }
-
-  /// Jump to the specified element e.g. hole, floor.
-  Future<void> jumpToElements(
-    String element,
-    int postId,
-  ) async {
-    if (!mounted) {
-      return;
-    }
-    // Do a quick initialization and push
-    // Throw an error if the user is not logged in
-    if (!context.read<ForumProvider>().isUserInitialized) {
-      try {
-        await ForumRepository.getInstance().initializeRepo();
-      } catch (ignored) {}
-    }
-    try {
-      if (element == 'hole') {
-        final OTHole hole = (await ForumRepository.getInstance()
-            .loadSpecificHole(postId))!;
-        if (mounted) {
-          smartNavigatorPush(context, "/bbs/postDetail", arguments: {
-            "post": hole,
-          });
-        }
-      } else if (element == 'floor') {
-        final floor = (await ForumRepository.getInstance()
-            .loadSpecificFloor(postId))!;
-        final OTHole hole = (await ForumRepository.getInstance()
-            .loadSpecificHole(floor.hole_id!))!;
-        if (mounted) {
-          smartNavigatorPush(context, "/bbs/postDetail", arguments: {
-            "post": hole,
-            "locate": floor,
-          });
-        }
-      } else {
-        throw ArgumentError(S.of(context).elementNotFound);
-      }
-    } catch (e) {
-      if (mounted) Noticing.showErrorDialog(context, e);
-    }
-  }
-
-  Future<void> _initReceiveIntents() async {
-    Future<void> dealWithIntent(ri.Intent? intent) async {
-      if (intent?.isNotNull == true) {
-        if (intent?.extra?.containsKey("key_message") == true) {
-          final keyMessage = intent!.extra!["key_message"];
-          final content = keyMessage["content"] as String;
-          final payload = jsonDecode(Uri.decodeComponent(content));
-          await onTapNotification(context, payload['code'], payload['data']);
-        }
-      }
-    }
-
-    if (!PlatformX.isAndroid) return;
-    ri.Intent? intent = await ri.ReceiveIntent.getInitialIntent();
-    await dealWithIntent(intent);
-    _receivedIntentSubscription.bindOnlyInvalid(
-        ri.ReceiveIntent.receivedIntentStream.listen((ri.Intent? intent) {
-      dealWithIntent(intent);
-    }), hashCode);
-  }
-
-  Future<void> onTapNotification(
-    BuildContext context,
-    String? code,
-    Map<String, dynamic>? data,
-  ) async {
-    if (!context.read<ForumProvider>().isUserInitialized) {
-      // Do a quick initialization and push
-      try {
-        ForumRepository.getInstance().initializeToken();
-      } catch (_) {}
-    }
-    smartNavigatorPush(context, '/bbs/messages',
-        forcePushOnMainNavigator: true);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Refresh the page when account changes.
-    StateProvider.personInfo.addListener(() {
-      if (StateProvider.personInfo.value != null) {
-        _rebuildPage();
-        refreshSelf();
-      }
-    });
-    initSystemTray().catchError((ignored) {});
-    WidgetsBinding.instance.addObserver(this);
-
-    _captchaSubscription.bindOnlyInvalid(
-        Constant.eventBus
-            .on<CaptchaNeededException>()
-            .listen((_) => _dealWithCaptchaNeededException()),
-        hashCode);
-    _credentialsInvalidSubscription.bindOnlyInvalid(
-        Constant.eventBus
-            .on<CredentialsInvalidException>()
-            .listen((_) => _dealWithCredentialsInvalidException()),
-        hashCode);
-    _initReceiveIntents();
-    _initUniLinks();
-
-    // Load the latest version, announcement & the start date of the following term.
-    _loadDataFromGithubRepo();
-    // Configure shortcut listeners on Android & iOS.
-    if (PlatformX.isMobile) {
-      quickActions.initialize((shortcutType) {
-        if (shortcutType == 'action_qr_code' &&
-            StateProvider.personInfo.value != null) {
-          QRHelper.showQRCode(context, StateProvider.personInfo.value);
-        }
-      });
-    }
-    // Configure watch listeners on iOS.
-    if (_needSendToWatch &&
-        SettingsProvider.getInstance().forumToken != null) {
-      sendFduholeTokenToWatch(
-          SettingsProvider.getInstance().forumToken!.access!);
-      // Only send once.
-      _needSendToWatch = false;
-    }
-    // Add shortcuts on Android & iOS.
-    if (PlatformX.isMobile) {
-      quickActions.setShortcutItems(<ShortcutItem>[
-        ShortcutItem(
-            type: 'action_qr_code',
-            localizedTitle: S.current.fudan_qr_code,
-            icon: 'ic_launcher'),
-      ]);
-    }
-    forumChannel.setMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case "launch_from_notification":
-          Map<String, dynamic> map =
-              Map<String, dynamic>.from(call.arguments['data']);
-          // Reconstruct data to restore proper type
-          map.updateAll((key, value) {
-            try {
-              return int.parse(value);
-            } catch (ignored) {}
-            return value;
-          });
-          await onTapNotification(context, call.arguments['code'], map);
-          break;
-        case "upload_apns_token":
-          try {
-            await ForumRepository.getInstance()
-                .updatePushNotificationToken(
-                    call.arguments["token"],
-                    await PlatformX.getUniqueDeviceId(),
-                    PushNotificationServiceType.APNS);
-          } catch (e, st) {
-            if (mounted) {
-              Noticing.showNotice(
-                  context,
-                  S.of(context).push_notification_reg_failed_des(
-                      ErrorPageWidget.generateUserFriendlyDescription(
-                          S.of(context), e,
-                          stackTrace: st)),
-                  title: S.of(context).push_notification_reg_failed);
-            }
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => HomePageBloc()..add(InitializeApp()),
+      child: BlocConsumer<HomePageBloc, HomePageState>(
+        listener: (context, state) {
+          // 处理一次性事件，如显示对话框或Toast
+          if (state is HomePageFailure) {
+            Noticing.showErrorDialog(context, state.error);
           }
-          break;
-        case 'get_token':
-          if (SettingsProvider.getInstance().forumToken != null) {
-            sendFduholeTokenToWatch(
-                SettingsProvider.getInstance().forumToken!.access!);
-          } else {
-            // Notify that we should send the token to watch later
-            _needSendToWatch = true;
+          if (state is HomePageLoginRequired && !LoginDialog.dialogShown) {
+            // 延时一帧确保 BuildContext 可用
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              LoginDialog.showLoginDialog(
+                context,
+                SettingsProvider.getInstance().preferences,
+                StateProvider.personInfo,
+                false,
+              );
+            });
           }
-          break;
-      }
-    });
-    if (PlatformX.isAndroid) {
-      XiaoMiPushPlugin.addListener((type, params) async {
-        switch (type) {
-          case XiaoMiPushListenerTypeEnum.NotificationMessageClicked:
-            if (params is MiPushMessageEntity && params.content != null) {
-              Map<String, String> obj = Uri.splitQueryString(params.content!);
-              await onTapNotification(
-                  context, obj['code'], jsonDecode(obj['data'] ?? ""));
-            }
-            break;
-          case XiaoMiPushListenerTypeEnum.RequirePermissions:
-          case XiaoMiPushListenerTypeEnum.ReceivePassThroughMessage:
-          case XiaoMiPushListenerTypeEnum.CommandResult:
-            break;
-          case XiaoMiPushListenerTypeEnum.ReceiveRegisterResult:
-            if (params is MiPushCommandMessageEntity &&
-                (params.commandArguments?.isNotEmpty ?? false)) {
-              String regId = params.commandArguments![0];
-              try {
-                await ForumRepository.getInstance()
-                    .updatePushNotificationToken(
-                        regId,
-                        await PlatformX.getUniqueDeviceId(),
-                        PushNotificationServiceType.MIPUSH);
-              } catch (e, st) {
-                Noticing.showNotice(
-                    context,
-                    S.of(context).push_notification_reg_failed_des(
-                        ErrorPageWidget.generateUserFriendlyDescription(
-                            S.of(context), e,
-                            stackTrace: st)),
-                    title: S.of(context).push_notification_reg_failed);
-              }
-            }
-            break;
-          case XiaoMiPushListenerTypeEnum.NotificationMessageArrived:
-            break;
-        }
-      });
-    }
-
-    screenListener?.addScreenRecordListener((recorded) async {
-      if (StateProvider.needScreenshotWarning &&
-          StateProvider.isForeground &&
-          !StateProvider.showingScreenshotWarning) {
-        StateProvider.showingScreenshotWarning = true;
-        await showScreenshotWarning(context);
-        StateProvider.showingScreenshotWarning = false;
-      }
-    });
-    screenListener?.addScreenShotListener((filePath) async {
-      if (StateProvider.needScreenshotWarning &&
-          StateProvider.isForeground &&
-          !StateProvider.showingScreenshotWarning) {
-        StateProvider.showingScreenshotWarning = true;
-        await showScreenshotWarning(context);
-        StateProvider.showingScreenshotWarning = false;
-      }
-    });
-    screenListener?.watch();
-  }
-
-  static showScreenshotWarning(BuildContext context) =>
-      Noticing.showNotice(context, S.of(context).screenshot_warning,
-          title: S.of(context).screenshot_warning_title, useSnackBar: false);
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // We have to load personInfo after [initState] and [build], since it may pop up a dialog,
-    // which is not allowed in both methods. It is because that the widget's reference to its inherited widget hasn't been changed.
-    // Also, otherwise it will call [setState] before the frame is completed.
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _loadPersonInfoOrLogin());
-  }
-
-  /// Load persistent data (e.g. user name, password, etc.) from the local storage.
-  ///
-  /// If user hasn't logged in before, request him to do so.
-  void _loadPersonInfoOrLogin() {
-    var preferences = SettingsProvider.getInstance().preferences;
-
-    if (PersonInfo.verifySharedPreferences(preferences!)) {
-      StateProvider.personInfo.value =
-          PersonInfo.fromSharedPreferences(preferences);
-      TestLifeCycle.onStart(context);
-    } else {
-      LoginDialog.showLoginDialog(
-          context, preferences, StateProvider.personInfo, false);
-    }
-  }
-
-  /// Show an empty container, if no person info is set.
-  Widget _buildDummyBody(Widget title) => PlatformScaffold(
-        iosContentBottomPadding: false,
-        iosContentPadding: true,
-        appBar: PlatformAppBar(title: title),
-        body: Column(children: [
-          Card(
-            child: ListTile(
-              leading: Icon(PlatformIcons(context).accountCircle),
-              title: Text(S.of(context).login),
-              onTap: () => LoginDialog.showLoginDialog(
-                  context,
-                  SettingsProvider.getInstance().preferences,
-                  StateProvider.personInfo,
-                  false),
-            ),
-          )
-        ]),
-      );
-
-  Widget _buildBody(Widget title) {
-    // Show debug button for [Dio].
-    if (PlatformX.isDebugMode(SettingsProvider.getInstance().preferences)) {
-      showDebugBtn(context, btnSize: 50);
-    }
-
-    return MultiProvider(
-      providers: [ValueListenableProvider.value(value: _pageIndex)],
-      child: PageWithTab(
-        child: Consumer<int>(
-          builder: (BuildContext context, pageIndex, _) => PlatformScaffold(
-            body: LazyLoadIndexedStack(
-              index: pageIndex,
-              children: _subpage,
-            ),
-
-            // 2021-5-19 @w568w:
-            // Override the builder to prevent the repeatedly built states on iOS.
-            // I don't know why it works...
-            cupertinoTabChildBuilder: (_, index) => _subpage[index],
-            bottomNavBar: PlatformNavBarM3(
-              items: [
-                // Don't show Dashboard in visitor mode
-                if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
-                  BottomNavigationBarItem(
-                    icon: PlatformX.isMaterial(context)
-                        ? const Icon(Icons.dashboard)
-                        : const Icon(CupertinoIcons.square_stack_3d_up_fill),
-                    label: S.of(context).dashboard,
-                  ),
-                if (!SettingsProvider.getInstance().hideHole)
-                  BottomNavigationBarItem(
-                    icon: PlatformX.isMaterial(context)
-                        ? const Icon(Icons.forum)
-                        : const Icon(CupertinoIcons.text_bubble),
-                    label: S.of(context).forum,
-                  ),
-                BottomNavigationBarItem(
-                  icon: PlatformX.isMaterial(context)
-                      ? const Icon(Icons.egg_alt)
-                      : const Icon(CupertinoIcons.book),
-                  label: S.of(context).curriculum,
-                ),
-                // Don't show Timetable in visitor mode
-                if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
-                  BottomNavigationBarItem(
-                    icon: PlatformX.isMaterial(context)
-                        ? const Icon(Icons.calendar_today)
-                        : const Icon(CupertinoIcons.calendar),
-                    label: S.of(context).timetable,
-                  ),
-                BottomNavigationBarItem(
-                  icon: PlatformX.isMaterial(context)
-                      ? const Icon(Icons.settings)
-                      : const Icon(CupertinoIcons.gear_alt),
-                  label: S.of(context).settings,
-                ),
-              ],
-              currentIndex: pageIndex,
-              itemChanged: (index) {
-                if (index != pageIndex) {
-                  // Dispatch [SubpageViewState] events.
-                  for (int i = 0; i < _subpage.length; i++) {
-                    if (index != i) {
-                      _subpage[i]
-                          .onViewStateChanged(SubpageViewState.INVISIBLE);
-                    }
-                  }
-                  _subpage[index].onViewStateChanged(SubpageViewState.VISIBLE);
-                  _pageIndex.value = index;
-                } else {
-                  _subpage[index].onDoubleTapOnTab();
-                }
-              },
-            ),
-          ),
-        ),
+        },
+        builder: (context, state) {
+          // 根据状态构建不同的UI
+          return switch (state) {
+            HomePageLoading() => const Scaffold(body: Center(child: CircularProgressIndicator())),
+            HomePageReady() => _buildMainScaffold(context, state),
+            _ => _buildLoginPromptScaffold(context), // 包含 LoginRequired 和 Failure
+          };
+        },
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Widget title = _subpage.isEmpty
-        ? Text(S.of(context).app_name)
-        : _subpage[_pageIndex.value].title.call(context);
-    return StateProvider.personInfo.value == null || _subpage.isEmpty
-        ? _buildDummyBody(title)
-        : _buildBody(title);
+  Widget _buildMainScaffold(BuildContext context, HomePageReady state) {
+    final s = S.of(context);
+    final pageIndex = state.pageIndex;
+    final subpages = state.subpages;
+    final title = subpages.isEmpty ? Text(s.app_name) : subpages[pageIndex].title.call(context);
+
+    return Scaffold(
+      appBar: AppBar(title: title),
+      body: LazyLoadIndexedStack(
+        index: pageIndex,
+        children: subpages,
+      ),
+      bottomNavigationBar: PlatformNavBarM3(
+        items: [
+          if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
+            BottomNavigationBarItem(icon: const Icon(Icons.dashboard), label: s.dashboard),
+          if (!SettingsProvider.getInstance().hideHole)
+            BottomNavigationBarItem(icon: const Icon(Icons.forum), label: s.forum),
+          BottomNavigationBarItem(icon: const Icon(Icons.egg_alt), label: s.curriculum),
+          if (StateProvider.personInfo.value?.group != UserGroup.VISITOR)
+            BottomNavigationBarItem(icon: const Icon(Icons.calendar_today), label: s.timetable),
+          BottomNavigationBarItem(icon: const Icon(Icons.settings), label: s.settings),
+        ],
+        currentIndex: pageIndex,
+        itemChanged: (index) {
+          if (index == pageIndex) {
+            context.read<HomePageBloc>().add(TabDoubleTapped());
+          } else {
+            context.read<HomePageBloc>().add(PageSwitched(index));
+          }
+        },
+      ),
+    );
   }
 
-  Future<void> _loadUpdate() async {
-    //We don't need to check for update on iOS platform.
-    if (PlatformX.isIOS) return;
-    final UpdateInfo updateInfo =
-        AnnouncementRepository.getInstance().checkVersion();
-    if (updateInfo.isAfter(
-        Pubspec.version.major, Pubspec.version.minor, Pubspec.version.patch)) {
-      await showPlatformDialog(
-          context: context,
-          builder: (BuildContext context) => PlatformAlertDialog(
-                title: Text(
-                  S.of(context).new_update_title,
-                ),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(S.of(context).new_update_description(
-                        FlutterApp.versionName,
-                        updateInfo.latestVersion ?? "?")),
-                    PostRenderWidget(
-                      content: "```\n${updateInfo.changeLog}\n```",
-                      render: kMarkdownRender,
-                      hasBackgroundImage: false,
-                    )
-                  ],
-                ),
-                actions: <Widget>[
-                  PlatformDialogAction(
-                      child: PlatformText(S.of(context).update_now),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        BrowserUtil.openUrl(Constant.updateUrl(), context);
-                      }),
-                  PlatformDialogAction(
-                      child: PlatformText(S.of(context).skip),
-                      onPressed: () => Navigator.pop(context)),
-                ],
-              ));
-    }
-  }
-
-  Future<void> _loadAnnouncement() async {
-    final Announcement? announcement =
-        await AnnouncementRepository.getInstance().getLastNewAnnouncement();
-    if (announcement != null && mounted) {
-      showPlatformDialog(
-          context: context,
-          builder: (BuildContext context) => PlatformAlertDialog(
-                title: Text(
-                  S
-                      .of(context)
-                      .developer_announcement(announcement.createdAt ?? "?"),
-                ),
-                content: SingleChildScrollView(
-                    child: LinkifyX(
-                  text: announcement.content!,
-                  onOpen: (element) =>
-                      BrowserUtil.openUrl(element.url, context),
-                )),
-                actions: <Widget>[
-                  PlatformDialogAction(
-                      child: PlatformText(S.of(context).i_see),
-                      onPressed: () => Navigator.pop(context)),
-                ],
-              ));
-    }
-  }
-
-  Future<void> _loadUserAgent() async {
-    String? userAgent;
-    try {
-      userAgent = AnnouncementRepository.getInstance().getUserAgent();
-    } catch (_) {}
-    if (userAgent != null) {
-      SettingsProvider.getInstance().customUserAgent =
-          StateProvider.onlineUserAgent = userAgent;
-    }
-  }
-
-  Future<void> _loadStartDate() async {
-    TimeTableExtra? startDateData;
-    try {
-      startDateData = AnnouncementRepository.getInstance().getStartDates();
-    } catch (_) {}
-    if (startDateData != null) {
-      SettingsProvider.getInstance().semesterStartDates = startDateData;
-    }
-  }
-
-  Future<void> _loadCelebration() async {
-    SettingsProvider.getInstance().celebrationWords =
-        AnnouncementRepository.getInstance().getCelebrations();
+  Widget _buildLoginPromptScaffold(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(S.of(context).app_name)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(S.of(context).login_required),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // 再次触发登录对话框
+                LoginDialog.showLoginDialog(
+                  context,
+                  SettingsProvider.getInstance().preferences,
+                  StateProvider.personInfo,
+                  false,
+                );
+              },
+              child: Text(S.of(context).login),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
+
+// --- 占位的 Subpage，您需要用实际的 Widget 替换它们 ---
+class HomeSubpage extends PlatformSubpage { 
+  const HomeSubpage({super.key}); 
+  @override Widget build(BuildContext context) => const Center(child: Text("Dashboard Page")); 
+  @override PreferredSizeWidget? buildAppBar(BuildContext context) => null; 
+  @override get title => (context) => const Text("Dashboard"); 
+}
+class DankeSubPage extends PlatformSubpage { 
+  const DankeSubPage({super.key}); 
+  @override Widget build(BuildContext context) => const Center(child: Text("Curriculum Page")); 
+  @override PreferredSizeWidget? buildAppBar(BuildContext context) => null; 
+  @override get title => (context) => const Text("Curriculum"); 
+}
+class SettingsSubpage extends PlatformSubpage { 
+  const SettingsSubpage({super.key}); 
+  @override Widget build(BuildContext context) => const Center(child: Text("Settings Page")); 
+  @override PreferredSizeWidget? buildAppBar(BuildContext context) => null; 
+  @override get title => (context) =

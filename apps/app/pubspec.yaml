@@ -53,9 +53,11 @@ dependencies:
   in_app_review: ^2.0.4
   flutter_linkify: ^6.0.0
   linkify: ^4.0.0
-  open_file:
-    git:
-      url: https://github.com/crazecoder/open_file.git
+  #open_file:
+  #  git:
+  #    url: https://github.com/crazecoder/open_file.git
+  # 不支持鸿蒙
+  
   dio5_log: ^5.1.2
   json_serializable: ^6.2.0
   photo_view: ^0.15.0

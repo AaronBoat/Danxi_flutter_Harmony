@@ -30,6 +30,8 @@ dependencies:
   #   git:
   #     url: https://github.com/w568w/flutter_progress_dialog.git
   #     ref: master
+
+  
   
   # Text and markdown
   flutter_linkify: ^6.0.0

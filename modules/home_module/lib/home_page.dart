@@ -21,19 +21,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lazy_load_indexed_stack/lazy_load_indexed_stack.dart';
 
-// 修正后的依赖导入
-import 'package:tools/common/constant.dart';
-import 'package:tools/generated/l10n.dart';
-import 'package:tools/model/person.dart';
-import 'package:tools/provider/settings_provider.dart';
-import 'package:tools/provider/state_provider.dart';
-import 'package:tools/repository/app/announcement_repository.dart';
-import 'package:tools/repository/fdu/uis_login_tool.dart';
-import 'package:tools/util/noticing.dart';
-import 'package:tools/util/platform_universal.dart';
-import 'package:widgets/dialogs/login_dialog.dart';
-import 'package:widgets/libraries/platform_nav_bar_m3.dart';
-import 'package:widgets/platform_subpage.dart';
+// 修正后的依赖导入，指向主 app 包 (dan_xi)
+import 'package:dan_xi/common/constant.dart';
+import 'package:dan_xi/generated/l10n.dart';
+import 'package:dan_xi/model/person.dart';
+import 'package:dan_xi/provider/settings_provider.dart';
+import 'package:dan_xi/provider/state_provider.dart';
+import 'package:dan_xi/repository/app/announcement_repository.dart';
+import 'package:dan_xi/repository/fdu/uis_login_tool.dart';
+import 'package:dan_xi/util/noticing.dart';
+import 'package:dan_xi/util/platform_universal.dart';
+import 'package:dan_xi/widgets/dialogs/login_dialog.dart';
+import 'package:dan_xi/widgets/libraries/platform_nav_bar_m3.dart';
+import 'package:dan_xi/widgets/platform_subpage.dart';
 
 // 其他模块依赖
 import 'package:forum_module/page/subpage_forum.dart';
@@ -239,11 +239,13 @@ class HomePage extends StatelessWidget {
         },
         builder: (context, state) {
           // 根据状态构建不同的UI
-          return switch (state) {
-            HomePageLoading() => const Scaffold(body: Center(child: CircularProgressIndicator())),
-            HomePageReady() => _buildMainScaffold(context, state),
-            _ => _buildLoginPromptScaffold(context), // 包含 LoginRequired 和 Failure
-          };
+          if (state is HomePageLoading) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          } else if (state is HomePageReady) {
+            return _buildMainScaffold(context, state);
+          } else {
+            return _buildLoginPromptScaffold(context); // 包含 LoginRequired 和 Failure
+          }
         },
       ),
     );

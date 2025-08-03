@@ -144,7 +144,7 @@ class BBSPostDetailState extends State<BBSPostDetail> {
           .loadSearchResults(searchKeyword,
               startFloor: _listViewController.length()),
       PunishmentHistory() => await loadPunishmentHistory(page),
-    }
+    };
 
     return results;
   }
@@ -1022,9 +1022,9 @@ class BBSPostDetailState extends State<BBSPostDetail> {
           (await ForumRepository.getInstance().getPunishmentHistory())
               ?.map((e) => e.floor!)
               .toList(),
-      }
+      };
 
-      if (result.isEmpty) {
+      if (result == null || result.isEmpty) {
         return null;
       } else {
         List<ImageUrlInfo> imageList = [];

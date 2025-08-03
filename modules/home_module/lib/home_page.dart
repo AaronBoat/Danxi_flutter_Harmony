@@ -45,36 +45,36 @@ import 'package:timetable_module/page/subpage_timetable.dart';
 // import 'package:dan_xi/page/subpage_settings.dart';
 
 // --- 1. Bloc Events (事件) ---
-sealed class HomePageEvent {}
+abstract class HomePageEvent {}
 
-final class InitializeApp extends HomePageEvent {}
-final class UserLoginChanged extends HomePageEvent {}
-final class PageSwitched extends HomePageEvent {
+class InitializeApp extends HomePageEvent {}
+class UserLoginChanged extends HomePageEvent {}
+class PageSwitched extends HomePageEvent {
   final int index;
   PageSwitched(this.index);
 }
-final class TabDoubleTapped extends HomePageEvent {}
+class TabDoubleTapped extends HomePageEvent {}
 
 
 // --- 2. Bloc States (状态) ---
-sealed class HomePageState {
+abstract class HomePageState {
   final int pageIndex;
   final List<PlatformSubpage<dynamic>> subpages;
   const HomePageState({this.pageIndex = 0, this.subpages = const []});
 }
 
-final class HomePageLoading extends HomePageState {}
+class HomePageLoading extends HomePageState {}
 
-final class HomePageLoginRequired extends HomePageState {}
+class HomePageLoginRequired extends HomePageState {}
 
-final class HomePageReady extends HomePageState {
+class HomePageReady extends HomePageState {
   const HomePageReady({
-    required super.pageIndex,
-    required super.subpages,
-  });
+    required int pageIndex,
+    required List<PlatformSubpage<dynamic>> subpages,
+  }) : super(pageIndex: pageIndex, subpages: subpages);
 }
 
-final class HomePageFailure extends HomePageState {
+class HomePageFailure extends HomePageState {
   final String error;
   const HomePageFailure(this.error);
 }
@@ -329,4 +329,5 @@ class SettingsSubpage extends PlatformSubpage {
   const SettingsSubpage({super.key}); 
   @override Widget build(BuildContext context) => const Center(child: Text("Settings Page")); 
   @override PreferredSizeWidget? buildAppBar(BuildContext context) => null; 
-  @override get title => (context) =
+  @override get title => (context) => const Text("Settings"); 
+}

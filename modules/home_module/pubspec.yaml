@@ -58,3 +58,27 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+dependency_overrides:
+  # --- 与主应用 dan_xi 保持一致 ---
+  
+  # 解决 intl 版本冲突 (SDK vs ical)
+  intl: ^0.19.0
+
+  # 解决 linkify 冲突
+  linkify:
+    git:
+      url: https://github.com/singularity-s0/linkify.git
+      ref: master
+      
+  # 解决 fluttertoast 潜在冲突
+  fluttertoast:
+    git:
+      url: https://github.com/ponnamkarthik/FlutterToast.git
+      ref: master
+
+  # 解决 flutter_platform_widgets 冲突
+  flutter_platform_widgets: ^7.0.0
+
+  # 解决 web 版本冲突
+  web: ^1.0.0
+

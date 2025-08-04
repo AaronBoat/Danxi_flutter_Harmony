@@ -31,8 +31,9 @@ dependencies:
   #     url: https://github.com/w568w/flutter_progress_dialog.git
   #     ref: master
 
-  
-  
+  # file
+  open_filex: ^4.5.0 # 使用一个较新的稳定版本
+
   # Text and markdown
   flutter_linkify: ^6.0.0
   linkify: ^4.0.0                   # 更新到最新版本以兼容HarmonyOS

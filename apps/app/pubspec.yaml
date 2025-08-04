@@ -57,6 +57,8 @@ dependencies:
   #  git:
   #    url: https://github.com/crazecoder/open_file.git
   # 不支持鸿蒙
+
+  open_filex: ^4.5.0 # 使用一个较新的稳定版本
   
   dio5_log: ^5.1.2
   json_serializable: ^6.2.0
